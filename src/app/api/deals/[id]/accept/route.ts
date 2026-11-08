@@ -1,5 +1,6 @@
 import { handler, ok, bad, readJson } from "@/lib/http";
 import { acceptTerms, getDeal } from "@/lib/deals";
+import { isValidPayoutSchedule } from "@/lib/payments";
 
 export const POST = handler(async (req: Request, ctx: RouteContext<"/api/deals/[id]/accept">) => {
   const { id } = await ctx.params;
@@ -16,6 +17,7 @@ export const POST = handler(async (req: Request, ctx: RouteContext<"/api/deals/[
     !(t.priceUsd > 0) && "price",
   ].filter(Boolean);
   if (missing.length) return bad(`Terms are incomplete: ${missing.join(", ")}`);
+  if (!isValidPayoutSchedule(t.payoutSchedule)) return bad("Payout must be either 100% when the post is verified or 100% after the stay-up period");
   const agreed = await acceptTerms(id, body.side);
   return ok({ agreed, status: (await getDeal(id))!.status });
 });

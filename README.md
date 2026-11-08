@@ -12,7 +12,7 @@ Built for the PayPal AI Hackathon (Nov 2026). This is the **build-fable** entry 
 2. The brand pays through PayPal checkout with the creator as the seller. PayPal holds the funds; our fee is split off.
 3. The creator posts and pastes the link. We fetch the post from the platform and Claude compares it with the terms: pass or fail, with plain-English reasons and quoted evidence.
 4. Daily re-checks for the agreed stay-up period.
-5. Pass: PayPal releases the money (optionally staged). Fail: fix window, then the brand is refunded.
+5. Pass: PayPal releases the money, either at go-live or after the stay-up period. Fail: fix window, then the brand is refunded.
 
 ## Run locally
 

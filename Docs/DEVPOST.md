@@ -14,7 +14,7 @@ Proof of Post is brand-deal escrow where AI does the checking and PayPal holds t
 2. The brand pays through PayPal checkout with the creator as the seller. PayPal holds the funds; our fee is split off automatically.
 3. The creator posts and pastes the link. We fetch the post from the platform (text, tags, thumbnail, disclosure flags) and Claude compares it with the terms, returning pass or fail with plain-English reasons and quoted evidence.
 4. Daily re-checks until the stay-up period ends. Plain code first; a small model only when something changed.
-5. On a pass PayPal releases the money to the creator, optionally staged (e.g. 50% at go-live, 50% after 7 days). On a fail the creator gets a fix window, then the brand is refunded.
+5. On a pass PayPal releases the money to the creator, either at go-live or after the agreed stay-up period. On a fail the creator gets a fix window, then the brand is refunded.
 6. Brands get a campaign dashboard (AG Grid); creators see deals and payouts; every decision is in an audit log.
 
 ## How we built it

@@ -4,7 +4,7 @@ const steps = [
   { n: "1", title: "Agree in plain English", body: "Brand and creator chat. The AI turns it into fixed terms both sides tap to accept." },
   { n: "2", title: "Brand pays, PayPal holds", body: "PayPal checkout with the creator as the seller. Funds are held, our fee splits off automatically." },
   { n: "3", title: "AI checks the post", body: "Live, matches the brief, carries the #ad label, and stays up for the agreed days. Reasons in plain English." },
-  { n: "4", title: "Money releases itself", body: "Pass: PayPal pays the creator, optionally in stages. Fail: a fix window, then the brand is refunded." },
+  { n: "4", title: "Money releases itself", body: "Pass: PayPal pays the creator, at go-live or after the stay-up period. Fail: a fix window, then the brand is refunded." },
 ];
 
 export default function Home() {

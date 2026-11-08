@@ -103,8 +103,7 @@ export async function reconcilePendingCapture(dealId: string): Promise<"complete
 }
 
 /**
- * Release held funds so that the creator has received `cumulativePct` of the price in total.
- * Idempotent per stage: calling it again with the same (or a lower) percentage releases nothing.
+ * Release the held funds to the creator once `cumulativePct` reaches 100. Idempotent: a second call releases nothing.
  * Does not finish the deal; `finishDeal` does that once the stay-up obligation is met.
  */
 export async function releaseToCreator(dealId: string, cumulativePct: number, reason: string) {
@@ -113,15 +112,14 @@ export async function releaseToCreator(dealId: string, cumulativePct: number, re
   const payment = await latestPayment(dealId);
   if (!payment?.paypalCaptureId || payment.status === "refunded") throw new Error("nothing captured to release");
 
-  const pct = Math.max(0, Math.min(100, cumulativePct));
-  const target = Math.min(deal.priceCents, Math.round((deal.priceCents * pct) / 100));
-  const amount = target - deal.releasedCents;
+  // Single-stage only. Verified 8 Nov 2026: a referenced payout with payout_amount (a partial release) is rejected by
+  // PayPal with 422 AMOUNT_CHECK_FAILED, while omitting the amount releases the whole held balance. So the only
+  // release we ever make is "everything", once.
+  if (cumulativePct < 100) return { amountCents: 0 };
+  const amount = deal.priceCents - deal.releasedCents;
   if (amount <= 0) return { amountCents: 0 };
-
-  const newReleased = deal.releasedCents + amount;
-  // Omitting payout_amount releases the entire held balance to the seller: the single-stage case.
-  const releaseAll = deal.releasedCents === 0 && newReleased === deal.priceCents;
-  const item = await mp.releaseCapture(payment.paypalCaptureId, releaseAll ? undefined : amount, `rel-${payment.paypalCaptureId}-${deal.releasedCents}-${amount}`);
+  const newReleased = deal.priceCents;
+  const item = await mp.releaseCapture(payment.paypalCaptureId, undefined, `rel-${payment.paypalCaptureId}-all`);
   const payoutState = item.processing_state?.status?.toUpperCase() ?? "";
   if (["FAILED", "BLOCKED", "DENIED", "REFUNDED", "RETURNED", "REVERSED", "CANCELED", "CANCELLED"].includes(payoutState)) {
     await audit(dealId, "paypal", "payment:release_failed", { amountCents: amount, state: item.processing_state, itemId: item.item_id });
@@ -134,11 +132,8 @@ export async function releaseToCreator(dealId: string, cumulativePct: number, re
     .update(schema.payments)
     .set({ paypalPayoutBatchId: item.item_id ?? null, status: newReleased >= deal.priceCents ? "released" : "held", raw: { ...(payment.raw as object), release: item }, updatedAt: new Date() })
     .where(eq(schema.payments.id, payment.id));
-  await audit(dealId, "paypal", "payment:released", { amountCents: amount, cumulativePct: pct, reason, itemId: item.item_id, state: item.processing_state });
+  await audit(dealId, "paypal", "payment:released", { amountCents: amount, reason, itemId: item.item_id, state: item.processing_state });
 
-  if (newReleased < deal.priceCents && deal.status === "live_checking") {
-    await setStatus(dealId, "partially_released", "system", { reason, cumulativePct: pct });
-  }
   return { amountCents: amount, item };
 }
 
@@ -182,8 +177,13 @@ export async function refundBrand(dealId: string, reason: string) {
   return refund;
 }
 
-/** Cumulative share of the price the creator is entitled to after an event. */
+/** Share of the price the creator is entitled to after an event: 100 or 0, single stage only. */
 export function releasePlanFor(deal: Deal, event: "go_live" | "stay_up_complete"): number {
   if (event === "stay_up_complete") return 100;
-  return deal.terms.payoutSchedule.atGoLivePct;
+  return deal.terms.payoutSchedule.atGoLivePct >= 100 ? 100 : 0;
+}
+
+/** Only two schedules are allowed: paid when verified, or paid after the stay-up period. */
+export function isValidPayoutSchedule(s: { atGoLivePct: number; afterStayUpPct: number }) {
+  return (s.atGoLivePct === 100 && s.afterStayUpPct === 0) || (s.atGoLivePct === 0 && s.afterStayUpPct === 100);
 }

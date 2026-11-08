@@ -20,7 +20,9 @@ export const TermsSchema = z.object({
   disclosureRequired: z.boolean().describe("Default true: the post must carry #ad or an equivalent paid-promotion label."),
   minViews: z.number().int().nullable(),
   priceUsd: z.number().describe("What the creator receives, in USD. 0 if not yet agreed."),
-  payoutSchedule: z.object({ atGoLivePct: z.number().int().min(0).max(100), afterStayUpPct: z.number().int().min(0).max(100) }),
+  payoutSchedule: z
+    .object({ atGoLivePct: z.union([z.literal(0), z.literal(100)]), afterStayUpPct: z.union([z.literal(0), z.literal(100)]) })
+    .describe("Single stage only: either {100, 0} (paid when the post is verified) or {0, 100} (paid after the stay-up period)."),
   notes: z.string(),
 });
 
@@ -36,7 +38,7 @@ const SYSTEM = `You are the deal builder for Proof of Post. A brand and a creato
 
 Rules:
 - Keep a running draft of the terms. Fill in everything you can from the conversation; leave unknowns empty/0/null rather than inventing them.
-- Essentials before a deal can be accepted: platform, creator account, deliverable, post-by date, price. Everything else has sensible defaults: disclosureRequired=true, stayUpDays=7, payoutSchedule 100% at go-live (or 50/50 if either side mentions staged or split payment), requiredHashtags always includes "#ad" when disclosure is required.
+- Essentials before a deal can be accepted: platform, creator account, deliverable, post-by date, price. Everything else has sensible defaults: disclosureRequired=true, stayUpDays=7, payoutSchedule 100% at go-live, or 100% after the stay-up period if either side asks to pay at the end. Split or staged payments (e.g. 50/50) are not available: if asked, say so briefly and offer the two options. requiredHashtags always includes "#ad" when disclosure is required.
 - Prices: the price is what the creator receives. The brand pays the platform fee on top; you don't need to compute it.
 - Dates: today's date is given in the first user message. Resolve relative dates ("next Friday") to ISO dates.
 - Be brief, friendly and neutral between the two parties. Ask for at most one missing item per reply. When everything essential is present, summarise the terms in one or two sentences and say both sides can tap Accept.
@@ -75,7 +77,7 @@ export async function buildDeal(history: BuilderTurn[], brandName: string, creat
   if (response.stop_reason === "refusal" || !response.parsed_output) {
     return {
       reply: "I couldn't process that message. Could you rephrase the deal in a sentence or two?",
-      terms: emptyTerms(),
+      terms: emptyTerms() as BuilderOutput["terms"],
       missing: ["platform", "creatorAccount", "deliverable", "postBy", "priceUsd"],
       readyToAccept: false,
     };

@@ -3,7 +3,7 @@
 Agent B build (Claude Fable 5.1) of the PayPal AI Hackathon entry described in `../BUILD.md`.
 Two builds are being made in parallel from the same brief; this document covers **build-fable only**. The other build has its own folder, repo, PayPal sandbox app and database and is not described here. Shared outside facts go in `../SHARED-NOTES.md` (append-only, tagged `[fable]`).
 
-Written Sun 8 Nov 2026, 17:40 UK, at the point the owner paused the build for review.
+Written Sun 8 Nov 2026, 17:40 UK; updated 22:00 UK after the sandbox end-to-end run (new Fable session in T3 Code).
 Everything below is marked **verified** (run and seen working) or **unverified** (written, type-checks, not exercised).
 
 ---
@@ -33,12 +33,15 @@ Brand-deal escrow. A brand and a creator agree terms through a chat that an AI t
 | Manual adapter (creator submits screenshot + text) | unverified, committed |
 | Fee maths ($250 → brand pays $280.27) | **verified**, committed |
 | PayPal auth, partner referral, DELAYED platform order with platform fee | **verified** in sandbox, committed |
-| PayPal capture, release (referenced payouts), refund, webhook | unverified, committed |
-| Claude post checker + deal builder | unverified (no `ANTHROPIC_API_KEY` yet), committed |
-| Deal state machine, audit log, check orchestrator | type-checks, unverified at runtime, committed |
-| API routes, payments service, demo parties | type-checks, **not committed** |
-| UI: deals list/detail, chat, creator, brand AG Grid dashboard, pricing, admin | pages all return HTTP 200, no clicks tested, **not committed** |
-| YouTube adapter, Twitch adapter | **not started** (need keys) |
+| PayPal capture + full release (referenced payouts) | **verified** in sandbox 8 Nov 21:12 (deal `deal_pdtv33wwpu`) |
+| PayPal refund, webhook | unverified, committed |
+| Partial (staged) release | **not possible**: PayPal rejects `payout_amount` with 422 AMOUNT_CHECK_FAILED. Owner decision 8 Nov: single-stage payouts only (100% at go-live or 100% after stay-up) |
+| Claude post checker + deal builder | **verified**: 6/6 verdicts correct incl. missing #ad and trick caption (`scripts/spike-verdict.ts`); builder turn verified via the chat route |
+| Deal state machine, audit log, check orchestrator | **verified** through the sandbox run (draft→agreed→funded→awaiting_post→live_checking→released) |
+| API routes, payments service, demo parties | committed after a 3-round Sol review; exercised end to end |
+| UI: deals list/detail, chat, creator, brand AG Grid dashboard, pricing, admin | committed; deal page, Pay button and PayPal return verified in a browser by the owner; AG Grid interaction still unclicked |
+| YouTube adapter, Twitch adapter | **verified** against live content (`scripts/spike-adapters.ts`) |
+| Fail path → refund | **not yet run** (needs one more buyer approval) |
 | Render deploy, webhook id, Devpost, video | **not started** |
 
 `npx tsc --noEmit` passes on the whole tree including the uncommitted files (checked 17:38).
@@ -124,9 +127,10 @@ Pages: `/` landing, `/deals`, `/deals/new`, `/deals/[id]`, `/creator`, `/brand` 
 | PAYPAL_BN_CODE | set | dashboard → app → BN code (`FLAVORsb-eksmj53776972_MP`) |
 | PAYPAL_PLATFORM_EMAIL | set | the auto-created US partner business account |
 | PAYPAL_WEBHOOK_ID | **empty, deploy-time** | dashboard → app → Add Webhook with `https://<render-url>/api/paypal/webhook`; needs a public URL so cannot be done before deploy. Optional for the demo. |
-| ANTHROPIC_API_KEY | **empty, needed** | owner's Anthropic console |
-| YOUTUBE_API_KEY | empty, needed for YouTube adapter | Google Cloud console, YouTube Data API v3 |
-| TWITCH_CLIENT_ID / SECRET | empty, needed for Twitch adapter | dev.twitch.tv console |
+| ANTHROPIC_API_KEY | set | owner's Anthropic console |
+| PAYPAL_PLATFORM_MERCHANT_ID | set (`YXX9CVCSZVCXA`, not secret) | `platform_fees[].payee.merchant_id` on any created order; needed for merchant-integrations lookups |
+| YOUTUBE_API_KEY | set | Google Cloud console, YouTube Data API v3 |
+| TWITCH_CLIENT_ID / SECRET | set | dev.twitch.tv console |
 
 ## 6. PayPal sandbox accounts (all US, this build's app only)
 
@@ -134,9 +138,9 @@ Pages: `/` landing, `/deals`, `/deals/new`, `/deals/[id]`, `/creator`, `/brand` 
 |---|---|---|
 | Our platform (partner) business | sb-eksmj53776972@business.example.com | auto-created with the app |
 | Demo brand (buyer, personal) | sb-erjts53771318@personal.example.com | 683GCJHG3FUAC |
-| Demo creator (seller, business) | sb-ihmpl53787724@business.example.com | merchant 67V95EE4BS8LL |
+| Demo creator (seller, business) | sb-ihmpl53787724@business.example.com | merchant 67V95EE4BS8LL, **onboarded to our platform 8 Nov 21:00** (consent granted; required, or capture fails with PAYEE_NOT_CONSENTED) |
 
-Passwords: dashboard → Testing Tools → Sandbox Accounts → ⋯ → View/Edit account. They are not stored on disk (a permission rule stopped the agent writing them to `.env.local`). Log in to buyer/seller at sandbox.paypal.com.
+Passwords: developer.paypal.com → Testing Tools → Sandbox Accounts (`https://developer.paypal.com/dashboard/accounts`) → ⋯ → View/Edit account → Profile tab. Log out of sandbox.paypal.com between acting as seller and buyer: a seller cannot pay its own order, and every sandbox account shows the same "JD" avatar. They are not stored on disk (a permission rule stopped the agent writing them to `.env.local`). Log in to buyer/seller at sandbox.paypal.com.
 
 Open item: one test order `1UD18014N44982116` ($280.27, DELAYED) sits unapproved in the sandbox from the spike. Its payee was a stand-in GB account, not the demo creator. Safe to ignore.
 

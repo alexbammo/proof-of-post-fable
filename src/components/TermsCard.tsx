@@ -18,7 +18,7 @@ export function TermsCard({ deal }: { deal: Deal }) {
     ["Minimum views", t.minViews ? t.minViews.toLocaleString() : "—"],
     [
       "Payout",
-      t.payoutSchedule.afterStayUpPct > 0 ? `${t.payoutSchedule.atGoLivePct}% at go-live, ${t.payoutSchedule.afterStayUpPct}% after ${t.stayUpDays} days` : "100% when the post is verified",
+      t.payoutSchedule.afterStayUpPct >= 100 ? `100% after the post has stayed up ${t.stayUpDays} days` : "100% when the post is verified",
     ],
   ];
   return (
