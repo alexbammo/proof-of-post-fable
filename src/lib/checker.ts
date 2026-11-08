@@ -40,7 +40,7 @@ async function latestCheck(dealId: string) {
   return rows[0] ?? null;
 }
 
-async function latestPost(dealId: string) {
+export async function latestPost(dealId: string) {
   const db = await getDb();
   const rows = await db.select().from(schema.posts).where(eq(schema.posts.dealId, dealId)).orderBy(desc(schema.posts.submittedAt)).limit(1);
   return rows[0] ?? null;

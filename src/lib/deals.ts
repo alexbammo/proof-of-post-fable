@@ -83,11 +83,17 @@ export async function createDraftDeal(params: { brandId: string; creatorId: stri
 /** Re-price a draft when the terms change in the builder chat. */
 export async function updateDraftTerms(dealId: string, terms: DealTerms, tier: Tier = "starter") {
   const db = await getDb();
+  const current = await getDeal(dealId);
+  if (!current) throw new Error("deal not found");
   const q = quote(Math.round(terms.priceUsd * 100), tier);
+  // Any change to the terms voids earlier acceptances: both sides must accept the same text.
+  const changed = canonical(current.terms) !== canonical(terms);
+  const voided = changed && (current.brandAcceptedAt || current.creatorAcceptedAt);
   await db
     .update(schema.deals)
     .set({
       terms,
+      ...(changed ? { brandAcceptedAt: null, creatorAcceptedAt: null } : {}),
       priceCents: q.priceCents,
       platformFeeCents: q.platformFeeCents,
       processingFeeCents: q.processingFeeCents,
@@ -96,6 +102,12 @@ export async function updateDraftTerms(dealId: string, terms: DealTerms, tier: T
       updatedAt: new Date(),
     })
     .where(eq(schema.deals.id, dealId));
+  if (voided) await audit(dealId, "system", "terms:acceptance_voided", { reason: "terms changed after acceptance" });
+}
+
+/** JSON with keys sorted recursively, so a JSONB round trip (which reorders keys) compares equal. */
+function canonical(v: unknown): string {
+  return JSON.stringify(v, (_k, val) => (val && typeof val === "object" && !Array.isArray(val) ? Object.fromEntries(Object.keys(val as object).sort().map((k) => [k, (val as Record<string, unknown>)[k]])) : val));
 }
 
 export async function acceptTerms(dealId: string, side: "brand" | "creator") {

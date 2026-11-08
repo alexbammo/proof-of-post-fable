@@ -130,6 +130,9 @@ export async function getOrder(orderId: string) {
   return paypal<OrderResult>(`/v2/checkout/orders/${orderId}`);
 }
 
+export async function getCapture(captureId: string) {
+  return paypal<{ id: string; status: string; amount?: { value: string; currency_code: string } }>(`/v2/payments/captures/${captureId}`);
+}
 export async function captureOrder(orderId: string) {
   return paypal<OrderResult>(`/v2/checkout/orders/${orderId}/capture`, { body: {}, requestId: `cap-${orderId}` });
 }
@@ -156,13 +159,14 @@ export interface ReferencedPayoutItem {
 }
 
 /** Release a DELAYED capture to the seller. Omit amount to release the whole remaining balance. */
-export async function releaseCapture(captureId: string, amountCents?: number) {
+/**
+ * Release held funds to the seller. `requestId` must be unique per stage (two equal 50% stages
+ * would otherwise share an idempotency key and PayPal would replay the first payout).
+ */
+export async function releaseCapture(captureId: string, amountCents: number | undefined, requestId: string) {
   const body: Record<string, unknown> = { reference_id: captureId, reference_type: "TRANSACTION_ID" };
   if (amountCents) body.payout_amount = { currency_code: "USD", value: toAmountString(amountCents) };
-  return paypal<ReferencedPayoutItem>("/v1/payments/referenced-payouts-items", {
-    body,
-    requestId: `rel-${captureId}-${amountCents ?? "all"}`,
-  });
+  return paypal<ReferencedPayoutItem>("/v1/payments/referenced-payouts-items", { body, requestId });
 }
 
 export async function getReferencedPayoutItem(itemId: string) {
@@ -171,10 +175,15 @@ export async function getReferencedPayoutItem(itemId: string) {
 
 // ---------- 4. Refund ----------
 
-export async function refundCapture(captureId: string, amountCents?: number, note?: string, sellerMerchantId?: string) {
+/**
+ * Refund the brand. `platformFeeCents` is the part of our fee we hand back as part of the refund
+ * (payment_instruction.platform_fees); without it PayPal refunds only the seller's share.
+ */
+export async function refundCapture(captureId: string, amountCents?: number, note?: string, sellerMerchantId?: string, platformFeeCents?: number) {
   const body: Record<string, unknown> = {};
   if (amountCents) body.amount = { currency_code: "USD", value: toAmountString(amountCents) };
   if (note) body.note_to_payer = note.slice(0, 255);
+  if (platformFeeCents) body.payment_instruction = { platform_fees: [{ amount: { currency_code: "USD", value: toAmountString(platformFeeCents) } }] };
   const { authAssertion } = await import("./client");
   return paypal<{ id: string; status: string }>(`/v2/payments/captures/${captureId}/refund`, {
     body,
