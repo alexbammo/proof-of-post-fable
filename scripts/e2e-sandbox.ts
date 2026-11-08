@@ -79,7 +79,7 @@ async function setup(postUrl?: string) {
   console.log(`\nthen: ... e2e-sandbox.ts post ${id} ${postUrl}`);
 }
 
-async function status(id: string) {
+async function showStatus(id: string) {
   const { deals } = await api("GET", "/api/deals");
   const d = deals.find((x: { id: string }) => x.id === id);
   console.log(JSON.stringify({ status: d?.status, priceCents: d?.priceCents, brandTotalCents: d?.brandTotalCents, releasedCents: d?.releasedCents, refundedCents: d?.refundedCents, clockOffsetDays: d?.clockOffsetDays, goLiveAt: d?.goLiveAt, fixWindowEndsAt: d?.fixWindowEndsAt }, null, 1));
@@ -88,21 +88,21 @@ async function status(id: string) {
 async function main() {
   const [cmd, a, b] = process.argv.slice(2);
   if (cmd === "setup") return setup(a);
-  if (cmd === "status") return status(a);
+  if (cmd === "status") return showStatus(a);
   if (cmd === "post") {
     const r = await api("POST", `/api/deals/${a}/post`, { url: b });
     console.log(JSON.stringify(r, null, 1));
-    return status(a);
+    return showStatus(a);
   }
   if (cmd === "warp") {
     const r = await api("POST", `/api/admin/clock`, { dealId: a, days: Number(b) }, { "x-admin-token": process.env.ADMIN_TOKEN ?? "" });
     console.log(JSON.stringify(r, null, 1));
-    return status(a);
+    return showStatus(a);
   }
   if (cmd === "recheck") {
     const r = await api("POST", `/api/deals/${a}/recheck`);
     console.log(JSON.stringify(r, null, 1));
-    return status(a);
+    return showStatus(a);
   }
   console.log("commands: setup [bskyUrl] | status <id> | post <id> <url> | warp <id> <days> | recheck <id>");
 }
