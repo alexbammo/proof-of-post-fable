@@ -1,5 +1,5 @@
 // Drive the app's own HTTP API through a sandbox deal, step by step.
-//   setup [bsky post url]         link the demo creator, create a deal, chat once with the AI builder, set terms,
+//   setup [bsky post url]         (or `setup-fail`: same deal but #ad required, so a plain post fails) link the demo creator, create a deal, chat once with the AI builder, set terms,
 //                                 accept both sides, start checkout → prints the PayPal approve URL (buyer logs in there)
 //   status <dealId>               print deal status, payments and audit tail
 //   post <dealId> <url>           creator submits the post → initial check (and go-live release on a pass)
@@ -27,11 +27,11 @@ async function latestBskyPost(): Promise<{ url: string; handle: string }> {
   return { url: `https://bsky.app/profile/${p.author.handle}/post/${p.uri.split("/").pop()}`, handle: p.author.handle };
 }
 
-async function setup(postUrl?: string) {
+async function setup(postUrl?: string, requireDisclosure = false) {
   const link = await api("POST", "/api/creators/creator_demo/onboard", { paypalEmail: CREATOR_EMAIL });
   console.log("creator linked:", link);
 
-  const { id } = await api("POST", "/api/deals", { title: "E2E sandbox deal" });
+  const { id } = await api("POST", "/api/deals", { title: requireDisclosure ? "E2E sandbox deal (fail path)" : "E2E sandbox deal" });
   console.log("deal:", id);
 
   // One real turn through the AI deal builder, to verify it end to end.
@@ -55,16 +55,16 @@ async function setup(postUrl?: string) {
   const terms = await api("PUT", `/api/deals/${id}/terms`, {
     platform: "bluesky",
     creatorAccount: handle,
-    deliverable: "One Bluesky post from the creator's account (sandbox end-to-end test)",
+    deliverable: requireDisclosure ? "One sponsored Bluesky post from the creator's account, clearly labelled #ad (sandbox fail-path test)" : "One Bluesky post from the creator's account (sandbox end-to-end test)",
     postBy: "2026-12-31",
     stayUpDays: 7,
     requiredMentions: [],
-    requiredHashtags: [],
+    requiredHashtags: requireDisclosure ? ["#ad"] : [],
     requiredLinks: [],
-    disclosureRequired: false,
+    disclosureRequired: requireDisclosure,
     minViews: null,
     priceUsd: 50,
-    payoutSchedule: { atGoLivePct: 50, afterStayUpPct: 50 },
+    payoutSchedule: { atGoLivePct: 100, afterStayUpPct: 0 },
     notes: "sandbox e2e",
   });
   console.log("terms set; price", terms.terms.priceUsd);
@@ -88,6 +88,7 @@ async function showStatus(id: string) {
 async function main() {
   const [cmd, a, b] = process.argv.slice(2);
   if (cmd === "setup") return setup(a);
+  if (cmd === "setup-fail") return setup(a, true);
   if (cmd === "status") return showStatus(a);
   if (cmd === "post") {
     const r = await api("POST", `/api/deals/${a}/post`, { url: b });
@@ -104,7 +105,7 @@ async function main() {
     console.log(JSON.stringify(r, null, 1));
     return showStatus(a);
   }
-  console.log("commands: setup [bskyUrl] | status <id> | post <id> <url> | warp <id> <days> | recheck <id>");
+  console.log("commands: setup [bskyUrl] | setup-fail [bskyUrl] | status <id> | post <id> <url> | warp <id> <days> | recheck <id>");
 }
 main().catch((e) => {
   console.error(String(e));
