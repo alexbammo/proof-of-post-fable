@@ -2,9 +2,13 @@ import type { Platform } from "@/lib/db/schema";
 import type { PlatformAdapter, PostRef } from "./types";
 import { blueskyAdapter } from "./bluesky";
 import { manualAdapter } from "./manual";
+import { youtubeAdapter } from "./youtube";
+import { twitchAdapter } from "./twitch";
 
-// Adapters register here. YouTube and Twitch are added in later steps.
+// Adapters register here.
 const adapters: Partial<Record<Platform, PlatformAdapter>> = {
+  youtube: youtubeAdapter,
+  twitch: twitchAdapter,
   bluesky: blueskyAdapter,
   manual: manualAdapter,
 };
