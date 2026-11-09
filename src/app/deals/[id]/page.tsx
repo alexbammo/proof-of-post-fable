@@ -1,14 +1,23 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getDealFull } from "@/lib/deals";
+import { getDeal, getDealFull } from "@/lib/deals";
+import { DealProgress } from "@/components/DealProgress";
 import { StatusChip } from "@/components/StatusChip";
 import { TermsCard } from "@/components/TermsCard";
 import { DealChat } from "@/components/DealChat";
 import { DealActions } from "@/components/DealActions";
 import { VerdictCard } from "@/components/VerdictCard";
 import { usd } from "@/lib/money";
+import { shortTitle } from "@/lib/text";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: PageProps<"/deals/[id]">): Promise<Metadata> {
+  const { id } = await params;
+  const deal = await getDeal(id);
+  return { title: deal ? shortTitle(deal.title, 48) : "Deal" };
+}
 
 export default async function DealPage({ params, searchParams }: PageProps<"/deals/[id]">) {
   const { id } = await params;
@@ -26,7 +35,7 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
           <Link href="/deals" className="text-xs text-muted hover:text-foreground">
             ← All deals
           </Link>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{deal.title}</h1>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{shortTitle(deal.title, 72)}</h1>
           <p className="text-sm text-muted mt-1">
             {brand.name} × {creator.name}
             {creator.handle ? ` (@${creator.handle})` : ""}
@@ -41,6 +50,10 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
       {sp.pending ? <Banner kind="warn">PayPal has the payment but the capture is still pending. The deal will move on once PayPal confirms it.</Banner> : null}
       {sp.cancelled ? <Banner kind="warn">PayPal checkout was cancelled. Nothing was charged.</Banner> : null}
       {sp.error ? <Banner kind="bad">Payment step failed ({String(sp.error)}). Check the audit log below.</Banner> : null}
+
+      <div className="mt-6">
+        <DealProgress deal={deal} />
+      </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-6">

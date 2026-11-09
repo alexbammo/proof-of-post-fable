@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { desc } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
@@ -5,8 +6,10 @@ import { listDeals } from "@/lib/deals";
 import { StatusChip } from "@/components/StatusChip";
 import { aiConfigured } from "@/lib/ai/client";
 import { paypalConfigured } from "@/lib/paypal/client";
+import { shortTitle } from "@/lib/text";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Admin" };
 
 export default async function AdminPage() {
   const db = await getDb();
@@ -32,7 +35,7 @@ export default async function AdminPage() {
           {review.length === 0 ? <p className="text-muted">Nothing waiting.</p> : null}
           {review.map((d) => (
             <Link key={d.id} href={`/deals/${d.id}`} className="flex items-center justify-between gap-2 hover:underline">
-              <span className="truncate">{d.title}</span>
+              <span className="truncate">{shortTitle(d.title, 60)}</span>
               <StatusChip status={d.status} />
             </Link>
           ))}

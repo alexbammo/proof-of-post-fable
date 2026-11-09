@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import { NavLinks } from "@/components/NavLinks";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -10,13 +11,6 @@ export const metadata: Metadata = {
   title: { default: "Proof of Post", template: "%s · Proof of Post" },
   description: "Brand deals that pay the creator automatically once AI has verified the post. Money held by PayPal.",
 };
-
-const nav = [
-  { href: "/deals", label: "Deals" },
-  { href: "/brand", label: "Brand" },
-  { href: "/creator", label: "Creator" },
-  { href: "/pricing", label: "Pricing" },
-];
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -28,20 +22,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <span className="inline-block size-5 rounded-md bg-accent" aria-hidden />
               Proof of Post
             </Link>
-            <nav className="flex items-center gap-1 text-sm">
-              {nav.map((n) => (
-                <Link key={n.href} href={n.href} className="px-3 py-1.5 rounded-md hover:bg-background text-foreground/80 hover:text-foreground">
-                  {n.label}
-                </Link>
-              ))}
-            </nav>
+            <NavLinks />
           </div>
         </header>
         <main className="flex-1">{children}</main>
         <footer className="border-t border-border text-xs text-muted">
           <div className="mx-auto max-w-6xl px-4 py-6 flex flex-wrap gap-x-6 gap-y-2 justify-between">
-            <span>Proof of Post · sandbox demo, no real money moves</span>
-            <span>Creators pay nothing and keep 100%.</span>
+            <span>Proof of Post · PayPal sandbox demo, no real money moves</span>
+            <span className="flex gap-4">
+              <span>Creators pay nothing and keep 100%.</span>
+              <Link href="/admin" className="hover:text-foreground">Admin</Link>
+            </span>
           </div>
         </footer>
       </body>

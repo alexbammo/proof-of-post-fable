@@ -45,6 +45,19 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="pb-14 grid gap-4 md:grid-cols-3">
+        {[
+          ["Money held by PayPal, never by us", "A PayPal multiparty order with the creator as the seller and delayed disbursement. We can only release or refund."],
+          ["Every verdict quotes its evidence", "Claude reads the live post and returns pass or fail per term, with the exact text, flag or timestamp it relied on."],
+          ["Creators keep 100%", "The brand pays the fee on top. The creator receives exactly the agreed amount, automatically."],
+        ].map(([h, b]) => (
+          <div key={h} className="rounded-xl border border-border bg-card/60 p-5">
+            <h3 className="font-medium">{h}</h3>
+            <p className="mt-1.5 text-sm text-muted">{b}</p>
+          </div>
+        ))}
+      </section>
+
       <section className="pb-24">
         <h2 className="text-2xl font-semibold tracking-tight">How it works</h2>
         <ol className="mt-6 grid gap-4 md:grid-cols-4">

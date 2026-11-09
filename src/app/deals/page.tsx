@@ -1,10 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { listDeals } from "@/lib/deals";
 import { ensureDemoParties } from "@/lib/parties";
 import { StatusChip } from "@/components/StatusChip";
 import { usd } from "@/lib/money";
+import { shortTitle } from "@/lib/text";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Deals" };
 
 export default async function DealsPage() {
   await ensureDemoParties();
@@ -28,7 +31,7 @@ export default async function DealsPage() {
             <li key={d.id}>
               <Link href={`/deals/${d.id}`} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-4 hover:bg-background">
                 <div className="flex-1 min-w-[12rem]">
-                  <div className="font-medium">{d.title}</div>
+                  <div className="font-medium">{shortTitle(d.title, 72)}</div>
                   <div className="text-xs text-muted">
                     {d.terms.platform} · @{d.terms.creatorAccount || "—"} · {new Date(d.createdAt).toLocaleDateString("en-GB")}
                   </div>

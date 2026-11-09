@@ -1,11 +1,14 @@
+import type { Metadata } from "next";
 import { listDeals } from "@/lib/deals";
 import { ensureDemoParties, DEMO_BRAND_ID, getBrand } from "@/lib/parties";
 import { getDb, schema } from "@/lib/db";
 import { desc, inArray } from "drizzle-orm";
 import { CampaignGrid, type GridRow } from "@/components/CampaignGrid";
 import { usd } from "@/lib/money";
+import { shortTitle } from "@/lib/text";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Brand dashboard" };
 
 export default async function BrandPage() {
   await ensureDemoParties();
@@ -23,7 +26,7 @@ export default async function BrandPage() {
     const held = ["funded", "awaiting_post", "live_checking", "partially_released", "fix_window"].includes(d.status) ? d.priceCents - d.releasedCents : 0;
     return {
       id: d.id,
-      title: d.title,
+      title: shortTitle(d.title, 72),
       creator: cname.get(d.creatorId) ?? d.creatorId,
       platform: d.terms.platform,
       status: d.status,

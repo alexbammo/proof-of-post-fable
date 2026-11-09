@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import { TIERS } from "@/lib/money";
+
+export const metadata: Metadata = { title: "Pricing" };
 
 const FOR: Record<string, string> = {
   starter: "Small brands trying a few deals",

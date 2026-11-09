@@ -1,11 +1,14 @@
+import type { Metadata } from "next";
 import { ensureDemoParties, getCreator, DEMO_CREATOR_ID } from "@/lib/parties";
 import { listDeals } from "@/lib/deals";
 import { StatusChip } from "@/components/StatusChip";
 import { LinkPayPal } from "@/components/LinkPayPal";
 import { usd } from "@/lib/money";
+import { shortTitle } from "@/lib/text";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Creator" };
 
 export default async function CreatorPage({ searchParams }: PageProps<"/creator">) {
   await ensureDemoParties();
@@ -38,7 +41,7 @@ export default async function CreatorPage({ searchParams }: PageProps<"/creator"
               <li key={d.id}>
                 <Link href={`/deals/${d.id}`} className="flex items-center gap-4 px-5 py-4 hover:bg-background">
                   <div className="flex-1">
-                    <div className="font-medium">{d.title}</div>
+                    <div className="font-medium">{shortTitle(d.title, 72)}</div>
                     <div className="text-xs text-muted">
                       {d.terms.platform} · post by {d.terms.postBy || "—"} · stays up {d.terms.stayUpDays}d
                     </div>

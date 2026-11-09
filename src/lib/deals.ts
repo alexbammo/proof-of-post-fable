@@ -3,6 +3,7 @@ import { getDb, schema } from "@/lib/db";
 import type { Deal, DealStatus, DealTerms, Verdict } from "@/lib/db/schema";
 import { newId } from "@/lib/ids";
 import { audit } from "@/lib/audit";
+import { shortTitle } from "@/lib/text";
 import { quote, type Tier } from "@/lib/money";
 
 // Deal lifecycle:
@@ -98,7 +99,7 @@ export async function updateDraftTerms(dealId: string, terms: DealTerms, tier: T
       platformFeeCents: q.platformFeeCents,
       processingFeeCents: q.processingFeeCents,
       brandTotalCents: q.brandTotalCents,
-      title: terms.deliverable ? terms.deliverable.slice(0, 80) : "Untitled deal",
+      title: shortTitle(terms.deliverable ?? "", 72) || "Untitled deal",
       updatedAt: new Date(),
     })
     .where(eq(schema.deals.id, dealId));
