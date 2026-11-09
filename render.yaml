@@ -1,0 +1,69 @@
+# Render Blueprint for Proof of Post (build-fable).
+# Dashboard → New → Blueprint → pick this repo. Render creates the web service, the Postgres database and the
+# daily re-check cron job from this file, then asks for the env vars marked `sync: false` (paste them from .env.local).
+# Docs: https://render.com/docs/blueprint-spec
+
+databases:
+  - name: proof-of-post-fable-db
+    plan: free # 30-day free Postgres is enough for the hackathon demo
+    databaseName: proof_of_post
+    user: proof_of_post
+
+services:
+  - type: web
+    name: proof-of-post-fable
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: corepack enable && corepack prepare pnpm@10.5.0 --activate && pnpm install --frozen-lockfile && pnpm build
+    startCommand: pnpm start
+    healthCheckPath: /pricing
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: proof-of-post-fable-db
+          property: connectionString
+      - key: APP_URL
+        value: https://proof-of-post-fable.onrender.com
+      - key: PAYPAL_ENV
+        value: sandbox
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_PLATFORM_MERCHANT_ID
+        value: YXX9CVCSZVCXA
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false # optional; leave blank until a webhook is registered for the public URL
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: YOUTUBE_API_KEY
+        sync: false
+      - key: TWITCH_CLIENT_ID
+        sync: false
+      - key: TWITCH_CLIENT_SECRET
+        sync: false
+      - key: ADMIN_TOKEN
+        generateValue: true # Render generates it; copy it from the dashboard for the demo clock
+
+  # Daily re-check of every active deal. Render cron jobs are a paid add-on (about $1/month); delete this block to skip it.
+  # Without it, the "Run re-check now" button and the demo clock on each deal page do the same work on demand.
+  - type: cron
+    name: proof-of-post-fable-recheck
+    runtime: node
+    plan: starter
+    region: frankfurt
+    schedule: "15 6 * * *" # 06:15 UTC daily
+    buildCommand: "echo no build"
+    startCommand: curl -fsS -X POST -H "x-admin-token: $ADMIN_TOKEN" "$APP_URL/api/cron/recheck"
+    envVars:
+      - key: APP_URL
+        value: https://proof-of-post-fable.onrender.com
+      - key: ADMIN_TOKEN
+        fromService:
+          type: web
+          name: proof-of-post-fable
+          envVarKey: ADMIN_TOKEN
