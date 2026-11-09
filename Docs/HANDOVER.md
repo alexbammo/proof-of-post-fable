@@ -3,7 +3,7 @@
 Agent B build (Claude Fable 5.1) of the PayPal AI Hackathon entry described in `../BUILD.md`.
 Two builds are being made in parallel from the same brief; this document covers **build-fable only**. The other build has its own folder, repo, PayPal sandbox app and database and is not described here. Shared outside facts go in `../SHARED-NOTES.md` (append-only, tagged `[fable]`).
 
-Written Sun 8 Nov 2026, 17:40 UK; updated 22:00 UK after the sandbox end-to-end run (new Fable session in T3 Code).
+Written Sun 8 Nov 2026, 17:40 UK; updated Mon 9 Nov 15:50 UK after the sandbox refund run (new Fable session in T3 Code).
 Everything below is marked **verified** (run and seen working) or **unverified** (written, type-checks, not exercised).
 
 ---
@@ -34,14 +34,15 @@ Brand-deal escrow. A brand and a creator agree terms through a chat that an AI t
 | Fee maths ($250 → brand pays $280.27) | **verified**, committed |
 | PayPal auth, partner referral, DELAYED platform order with platform fee | **verified** in sandbox, committed |
 | PayPal capture + full release (referenced payouts) | **verified** in sandbox 8 Nov 21:12 (deal `deal_pdtv33wwpu`) |
-| PayPal refund, webhook | unverified, committed |
+| PayPal refund | **verified** in sandbox 9 Nov 15:35 (deal `deal_duttwg7d77`): full $57.50 back to the buyer, platform fee included, capture → REFUNDED |
+| PayPal webhook | unverified, committed (optional for the demo) |
 | Partial (staged) release | **not possible**: PayPal rejects `payout_amount` with 422 AMOUNT_CHECK_FAILED. Owner decision 8 Nov: single-stage payouts only (100% at go-live or 100% after stay-up) |
 | Claude post checker + deal builder | **verified**: 6/6 verdicts correct incl. missing #ad and trick caption (`scripts/spike-verdict.ts`); builder turn verified via the chat route |
 | Deal state machine, audit log, check orchestrator | **verified** through the sandbox run (draft→agreed→funded→awaiting_post→live_checking→released) |
 | API routes, payments service, demo parties | committed after a 3-round Sol review; exercised end to end |
 | UI: deals list/detail, chat, creator, brand AG Grid dashboard, pricing, admin | committed; deal page, Pay button and PayPal return verified in a browser by the owner; AG Grid interaction still unclicked |
 | YouTube adapter, Twitch adapter | **verified** against live content (`scripts/spike-adapters.ts`) |
-| Fail path → refund | **not yet run** (needs one more buyer approval) |
+| Fail path → refund | **verified** in sandbox 9 Nov: post without #ad → Claude fail 0.95 → 48h fix window → clock +3 days → fix re-check fail → refund COMPLETED → deal `refunded` |
 | Render deploy, webhook id, Devpost, video | **not started** |
 
 `npx tsc --noEmit` passes on the whole tree including the uncommitted files (checked 17:38).
@@ -150,17 +151,13 @@ Open item: one test order `1UD18014N44982116` ($280.27, DELAYED) sits unapproved
    ```
    ! cd C:\Users\Shadow\PPthon\build-fable && gh repo create alexbammo/proof-of-post-fable --private --source=. --remote=origin --push
    ```
-2. Review the uncommitted batch (`git status`), then commit with explicit paths (never `git add -A`).
-3. Add `ANTHROPIC_API_KEY` to `.env.local`, then run the first real check against the verified Bluesky post.
-4. Sandbox end-to-end: create a deal → pay as the buyer account → confirm capture → submit post → verdict → release → check the seller account balance. Then a refund path. None of this has been exercised.
-5. Creator onboarding through the real `action_url` with the seller account (the sandbox email shortcut exists as a fallback).
-6. YouTube adapter (`videos.list`, paid-promotion field name still to confirm, needs key) and Twitch adapter (Helix, needs client creds).
+2. ~~Commit the batch~~ done (`37cf6df`). 3. ~~First real Claude check~~ done. 4. ~~Sandbox end to end, release and refund~~ both done (`deal_pdtv33wwpu` released, `deal_duttwg7d77` refunded; driver: `scripts/e2e-sandbox.ts`). 5. ~~Creator onboarding via action_url~~ done (seller 67V95EE4BS8LL). 6. ~~YouTube and Twitch adapters~~ done.
 7. Render: web service (`pnpm build`, `pnpm start`, port from `PORT`), Postgres add-on → `DATABASE_URL`, cron hitting `/api/cron/recheck` daily, then the PayPal webhook id.
 8. `Docs/CHECKPOINT.md` for the Tue 10 Nov checkpoint, README judge logins, Devpost text, video.
 
 ## 8. Decisions the owner still has to make (ask one at a time)
 
-- Who bears PayPal's processing fee on a refunded deal (current copy: the brand).
+- Who bears PayPal's processing fee on a refunded deal. Sandbox answer 9 Nov: for an undisbursed DELAYED capture PayPal returned its own fee too (paypal_fee 0.00 on the refund), so the brand got 100% back and nobody bore it. Copy should say so; still confirm this is also live behaviour.
 - Individual vs company submission.
 - When the repo goes public (private until told).
 - Final product name (working name Proof of Post).

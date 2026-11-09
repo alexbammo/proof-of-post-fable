@@ -3,12 +3,13 @@ import { handler, ok, bad } from "@/lib/http";
 import { getDb, schema } from "@/lib/db";
 import { getDeal, dealDay, dealNow, setStatus } from "@/lib/deals";
 import { runCheck, latestPost } from "@/lib/checker";
-import { releaseToCreator, releasePlanFor, refundBrand, finishDeal, reconcilePendingCapture } from "@/lib/payments";
+import { releaseToCreator, releasePlanFor, closeFailedDeal, finishDeal, reconcilePendingCapture } from "@/lib/payments";
 import { audit } from "@/lib/audit";
 
 // One scheduled re-check for a deal. Called by the cron route for every active deal, and by the admin
 // time-warp control. Opens a fix window when the post deadline passes, releases the go-live stage when a
-// fix succeeds, releases the rest when the stay-up period completes, refunds when a fix window lapses.
+// fix succeeds, releases the rest when the stay-up period completes, refunds (or marks disputed if the creator
+// was already paid) when a fix window lapses.
 export const POST = handler(async (_req: Request, ctx: RouteContext<"/api/deals/[id]/recheck">) => {
   const { id } = await ctx.params;
   const deal = await getDeal(id);
@@ -41,13 +42,13 @@ export const POST = handler(async (_req: Request, ctx: RouteContext<"/api/deals/
     // Time's up: one last look (if there is a post at all), then refund if still failing.
     const post = await latestPost(id);
     if (!post) {
-      const refund = await refundBrand(id, "post deadline and fix window passed without a post");
-      return ok({ action: "refunded", refund });
+      const r = await closeFailedDeal(id, "post deadline and fix window passed without a post");
+      return ok({ action: r.outcome, ...(r.outcome === "refunded" ? { refund: r.refund } : {}) });
     }
     const last = await runCheck(id, "fix_recheck");
     if (last.verdict?.verdict === "fail") {
-      const refund = await refundBrand(id, "fix window expired without a passing post");
-      return ok({ action: "refunded", verdict: last.verdict, refund });
+      const r = await closeFailedDeal(id, "fix window expired without a passing post");
+      return ok({ action: r.outcome, verdict: last.verdict, ...(r.outcome === "refunded" ? { refund: r.refund } : {}) });
     }
     if (last.verdict?.verdict !== "pass") {
       // needs_review (or no verdict): never refund on ambiguity. The admin review queue shows the deal.

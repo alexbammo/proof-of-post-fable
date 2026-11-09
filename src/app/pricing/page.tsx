@@ -42,7 +42,7 @@ export default function PricingPage() {
       </div>
       <div className="mt-10 grid gap-4 md:grid-cols-3 text-sm text-muted">
         <p>$5 minimum fee per deal. Starter fee is capped at $250 per deal.</p>
-        <p>On a failed deal the brand is refunded and our fee is refunded with it. PayPal&apos;s processing fee on a refunded deal is borne by the brand.</p>
+        <p>On a failed deal the brand is refunded in full, our fee included. In our sandbox tests PayPal returned its processing fee as well; if PayPal ever keeps part of it, that part is borne by the brand.</p>
         <p>Enterprise pricing is set in spend bands so procurement can budget; annual minimum applies.</p>
       </div>
     </div>

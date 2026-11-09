@@ -176,8 +176,10 @@ export async function getReferencedPayoutItem(itemId: string) {
 // ---------- 4. Refund ----------
 
 /**
- * Refund the brand. `platformFeeCents` is the part of our fee we hand back as part of the refund
- * (payment_instruction.platform_fees); without it PayPal refunds only the seller's share.
+ * Refund the brand. `platformFeeCents` adds payment_instruction.platform_fees, a partner *contribution* to the
+ * refund. It needs an account capability our sandbox app lacks (422 PLATFORM_FEE_NOT_ENABLED, 9 Nov 2026). Verified
+ * only for a FULL refund of an undisbursed DELAYED capture: the held gross already contains the fee and PayPal
+ * returned all of it (platform_fees 5.00 in the refund breakdown). Partial refunds are untested here.
  */
 export async function refundCapture(captureId: string, amountCents?: number, note?: string, sellerMerchantId?: string, platformFeeCents?: number) {
   const body: Record<string, unknown> = {};

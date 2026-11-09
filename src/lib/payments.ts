@@ -146,9 +146,12 @@ export async function finishDeal(dealId: string, reason: string) {
 }
 
 /**
- * Refund the brand everything not yet released to the creator, and hand back our platform fee with it.
- * The refund amount is computed here from the ledger, never taken from PayPal's "refund all" default,
- * because a partial release does not reduce what PayPal would otherwise refund.
+ * Refund the brand everything not yet released to the creator. The amount is computed here from the ledger,
+ * never taken from PayPal's "refund all" default.
+ * The platform fee needs no separate instruction: on a DELAYED capture that was never disbursed, the fee is still
+ * part of the held gross, so refunding the gross returns it too. Verified 9 Nov 2026: sending
+ * payment_instruction.platform_fees on the refund is rejected with 422 PLATFORM_FEE_NOT_ENABLED (that field is a
+ * partner contribution, gated by an account capability), so it is deliberately omitted.
  */
 export async function refundBrand(dealId: string, reason: string) {
   const full = await getDealFull(dealId);
@@ -157,10 +160,14 @@ export async function refundBrand(dealId: string, reason: string) {
   const payment = await latestPayment(dealId);
   if (!payment?.paypalCaptureId) throw new Error("nothing captured to refund");
   if (payment.status === "refunded") throw new Error("nothing left to refund");
+  // Once anything has been released the capture is disbursed and a refund would debit the creator, not PayPal's
+  // hold. The ledger would still show the fee gross-up (brandTotal - price) as "refundable"; it is not. Only the
+  // undisbursed full refund is verified, so that is the only refund we make.
+  if (deal.releasedCents > 0) throw new Error("funds already released to the creator; refund is not available");
 
   const refundable = deal.brandTotalCents - deal.releasedCents;
   if (refundable <= 0) throw new Error("nothing left to refund");
-  const refund = await mp.refundCapture(payment.paypalCaptureId, refundable, reason, creator.paypalMerchantId ?? undefined, deal.platformFeeCents);
+  const refund = await mp.refundCapture(payment.paypalCaptureId, refundable, reason, creator.paypalMerchantId ?? undefined);
   if (["FAILED", "CANCELLED", "CANCELED"].includes(refund.status?.toUpperCase() ?? "")) {
     await audit(dealId, "paypal", "payment:refund_failed", { refundId: refund.id, status: refund.status, amountCents: refundable });
     throw new Error(`PayPal did not refund the brand (${refund.status})`);
@@ -175,6 +182,23 @@ export async function refundBrand(dealId: string, reason: string) {
   await audit(dealId, "paypal", "payment:refunded", { refundId: refund.id, status: refund.status, amountCents: refundable, platformFeeCents: deal.platformFeeCents, reason });
   if (deal.status !== "refunded") await setStatus(dealId, "refunded", "system", { reason });
   return refund;
+}
+
+/**
+ * A failed deal is closed one of two ways: refund the brand while PayPal still holds the money, or, if the creator
+ * has already been paid (100%-at-go-live deals whose post later disappears), mark it disputed for a human; nothing
+ * is clawed back automatically.
+ */
+export async function closeFailedDeal(dealId: string, reason: string): Promise<{ outcome: "refunded"; refund: Awaited<ReturnType<typeof refundBrand>> } | { outcome: "disputed" }> {
+  const deal = await getDeal(dealId);
+  if (!deal) throw new Error("deal not found");
+  if (deal.releasedCents > 0) {
+    await audit(dealId, "system", "payment:refund_not_available", { releasedCents: deal.releasedCents, reason });
+    await setStatus(dealId, "disputed", "system", { reason: `${reason}; creator already paid, needs a human` });
+    return { outcome: "disputed" };
+  }
+  const refund = await refundBrand(dealId, reason);
+  return { outcome: "refunded", refund };
 }
 
 /** Share of the price the creator is entitled to after an event: 100 or 0, single stage only. */
