@@ -58,7 +58,7 @@ services:
     region: frankfurt
     schedule: "15 6 * * *" # 06:15 UTC daily
     buildCommand: "echo no build"
-    startCommand: curl -fsS -X POST -H "x-admin-token: $ADMIN_TOKEN" "$APP_URL/api/cron/recheck"
+    startCommand: 'curl -fsS -X POST -H "x-admin-token: $ADMIN_TOKEN" "$APP_URL/api/cron/recheck"' # quoted: a bare ": " breaks YAML
     envVars:
       - key: APP_URL
         value: https://proof-of-post-fable.onrender.com
