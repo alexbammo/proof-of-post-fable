@@ -6,6 +6,7 @@
 databases:
   - name: proof-of-post-fable-db
     plan: free # 30-day free Postgres is enough for the hackathon demo
+    region: frankfurt # same region as the web service, so the internal connection string works
     databaseName: proof_of_post
     user: proof_of_post
 
@@ -18,7 +19,7 @@ services:
     buildCommand: corepack enable && corepack prepare pnpm@10.5.0 --activate && pnpm install --frozen-lockfile && pnpm build
     startCommand: pnpm start
     healthCheckPath: /pricing
-    autoDeploy: true
+    autoDeployTrigger: commit
     envVars:
       - key: NODE_VERSION
         value: "22"
@@ -54,7 +55,6 @@ services:
   - type: cron
     name: proof-of-post-fable-recheck
     runtime: node
-    plan: starter
     region: frankfurt
     schedule: "15 6 * * *" # 06:15 UTC daily
     buildCommand: "echo no build"
