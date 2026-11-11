@@ -78,6 +78,7 @@ export interface OrderResult {
   status: string;
   links: { href: string; rel: string; method: string }[];
   purchase_units?: {
+    payee?: { merchant_id?: string; email_address?: string };
     payments?: {
       captures?: { id: string; status: string; amount: { value: string }; seller_receivable_breakdown?: unknown }[];
       authorizations?: { id: string; status: string }[];
@@ -189,7 +190,8 @@ export async function refundCapture(captureId: string, amountCents?: number, not
   const { authAssertion } = await import("./client");
   return paypal<{ id: string; status: string }>(`/v2/payments/captures/${captureId}/refund`, {
     body,
-    requestId: `ref-${captureId}-${Date.now()}`,
+    // Stable key: a retry of the same refund returns the first result instead of refunding twice.
+    requestId: `ref-${captureId}-${amountCents ?? "full"}`,
     authAssertion: sellerMerchantId ? authAssertion(sellerMerchantId) : undefined,
   });
 }

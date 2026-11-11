@@ -159,7 +159,14 @@ export async function refundBrand(dealId: string, reason: string) {
   const { deal, creator } = full;
   const payment = await latestPayment(dealId);
   if (!payment?.paypalCaptureId) throw new Error("nothing captured to refund");
-  if (payment.status === "refunded") throw new Error("nothing left to refund");
+  if (payment.status === "refunded") {
+    // PayPal already refunded and the payment row says so; a crash may have left the deal behind. Finish it.
+    if (deal.status === "refunded") throw new Error("nothing left to refund");
+    const dbr = await getDb();
+    await dbr.update(schema.deals).set({ refundedCents: deal.brandTotalCents, updatedAt: new Date() }).where(eq(schema.deals.id, dealId));
+    await setStatus(dealId, "refunded", "system", { reason: `${reason} (completing an earlier refund ${payment.paypalRefundId ?? ""})` });
+    return { id: payment.paypalRefundId ?? "", status: "COMPLETED" };
+  }
   // Once anything has been released the capture is disbursed and a refund would debit the creator, not PayPal's
   // hold. The ledger would still show the fee gross-up (brandTotal - price) as "refundable"; it is not. Only the
   // undisbursed full refund is verified, so that is the only refund we make.
@@ -167,7 +174,29 @@ export async function refundBrand(dealId: string, reason: string) {
 
   const refundable = deal.brandTotalCents - deal.releasedCents;
   if (refundable <= 0) throw new Error("nothing left to refund");
-  const refund = await mp.refundCapture(payment.paypalCaptureId, refundable, reason, creator.paypalMerchantId ?? undefined);
+  // The refund is a seller-scoped call: PayPal wants the seller's merchant id in PayPal-Auth-Assertion and answers
+  // 403 PERMISSION_DENIED without it (seen 11 Nov 2026 on a creator linked by email only). The seller that matters
+  // is the one this capture was made to, not whoever the creator is linked to today, so the id is resolved per
+  // payment (saved on the payment row, never written back to the creator): saved value, then the order's payee,
+  // then the creator's stored id.
+  const raw = (payment.raw ?? {}) as { sellerMerchantId?: string };
+  let sellerId = raw.sellerMerchantId;
+  if (!sellerId && payment.paypalOrderId) {
+    try {
+      const order = await mp.getOrder(payment.paypalOrderId);
+      sellerId = order.purchase_units?.[0]?.payee?.merchant_id;
+    } catch (e) {
+      await audit(dealId, "paypal", "payment:seller_lookup_failed", { orderId: payment.paypalOrderId, error: e instanceof Error ? e.message : String(e) });
+    }
+    if (sellerId) {
+      const db0 = await getDb();
+      await db0.update(schema.payments).set({ raw: { ...raw, sellerMerchantId: sellerId }, updatedAt: new Date() }).where(eq(schema.payments.id, payment.id));
+      await audit(dealId, "paypal", "payment:seller_resolved", { merchantId: sellerId, from: "order payee" });
+    }
+  }
+  sellerId ??= creator.paypalMerchantId ?? undefined;
+  if (!sellerId) throw new Error("cannot refund: PayPal did not tell us which seller account this payment went to (order lookup failed and the creator has no merchant id)");
+  const refund = await mp.refundCapture(payment.paypalCaptureId, refundable, reason, sellerId);
   if (["FAILED", "CANCELLED", "CANCELED"].includes(refund.status?.toUpperCase() ?? "")) {
     await audit(dealId, "paypal", "payment:refund_failed", { refundId: refund.id, status: refund.status, amountCents: refundable });
     throw new Error(`PayPal did not refund the brand (${refund.status})`);
@@ -177,7 +206,7 @@ export async function refundBrand(dealId: string, reason: string) {
   await db.update(schema.deals).set({ refundedCents: refundable, updatedAt: new Date() }).where(eq(schema.deals.id, dealId));
   await db
     .update(schema.payments)
-    .set({ paypalRefundId: refund.id, status: "refunded", raw: { ...(payment.raw as object), refund }, updatedAt: new Date() })
+    .set({ paypalRefundId: refund.id, status: "refunded", raw: { ...(payment.raw as object), sellerMerchantId: sellerId, refund }, updatedAt: new Date() })
     .where(eq(schema.payments.id, payment.id));
   await audit(dealId, "paypal", "payment:refunded", { refundId: refund.id, status: refund.status, amountCents: refundable, platformFeeCents: deal.platformFeeCents, reason });
   if (deal.status !== "refunded") await setStatus(dealId, "refunded", "system", { reason });
