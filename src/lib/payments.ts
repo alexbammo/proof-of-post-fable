@@ -177,25 +177,26 @@ export async function refundBrand(dealId: string, reason: string) {
   // The refund is a seller-scoped call: PayPal wants the seller's merchant id in PayPal-Auth-Assertion and answers
   // 403 PERMISSION_DENIED without it (seen 11 Nov 2026 on a creator linked by email only). The seller that matters
   // is the one this capture was made to, not whoever the creator is linked to today, so the id is resolved per
-  // payment (saved on the payment row, never written back to the creator): saved value, then the order's payee,
-  // then the creator's stored id.
+  // payment (saved on the payment row, never written back to the creator): saved value, then the capture's payee,
+  // then the creator's stored id. Checked 11 Nov 2026: for an order created with an email payee, the order's payee
+  // has only the email; GET capture returns payee.merchant_id.
   const raw = (payment.raw ?? {}) as { sellerMerchantId?: string };
   let sellerId = raw.sellerMerchantId;
-  if (!sellerId && payment.paypalOrderId) {
+  if (!sellerId) {
     try {
-      const order = await mp.getOrder(payment.paypalOrderId);
-      sellerId = order.purchase_units?.[0]?.payee?.merchant_id;
+      const capture = await mp.getCapture(payment.paypalCaptureId);
+      sellerId = capture.payee?.merchant_id;
     } catch (e) {
-      await audit(dealId, "paypal", "payment:seller_lookup_failed", { orderId: payment.paypalOrderId, error: e instanceof Error ? e.message : String(e) });
+      await audit(dealId, "paypal", "payment:seller_lookup_failed", { captureId: payment.paypalCaptureId, error: e instanceof Error ? e.message : String(e) });
     }
     if (sellerId) {
       const db0 = await getDb();
       await db0.update(schema.payments).set({ raw: { ...raw, sellerMerchantId: sellerId }, updatedAt: new Date() }).where(eq(schema.payments.id, payment.id));
-      await audit(dealId, "paypal", "payment:seller_resolved", { merchantId: sellerId, from: "order payee" });
+      await audit(dealId, "paypal", "payment:seller_resolved", { merchantId: sellerId, from: "capture payee" });
     }
   }
   sellerId ??= creator.paypalMerchantId ?? undefined;
-  if (!sellerId) throw new Error("cannot refund: PayPal did not tell us which seller account this payment went to (order lookup failed and the creator has no merchant id)");
+  if (!sellerId) throw new Error("cannot refund: PayPal did not tell us which seller account this payment went to (capture lookup gave no merchant id and the creator has none)");
   const refund = await mp.refundCapture(payment.paypalCaptureId, refundable, reason, sellerId);
   if (["FAILED", "CANCELLED", "CANCELED"].includes(refund.status?.toUpperCase() ?? "")) {
     await audit(dealId, "paypal", "payment:refund_failed", { refundId: refund.id, status: refund.status, amountCents: refundable });

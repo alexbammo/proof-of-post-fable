@@ -132,7 +132,7 @@ export async function getOrder(orderId: string) {
 }
 
 export async function getCapture(captureId: string) {
-  return paypal<{ id: string; status: string; amount?: { value: string; currency_code: string } }>(`/v2/payments/captures/${captureId}`);
+  return paypal<{ id: string; status: string; amount?: { value: string; currency_code: string }; payee?: { merchant_id?: string; email_address?: string } }>(`/v2/payments/captures/${captureId}`);
 }
 export async function captureOrder(orderId: string) {
   return paypal<OrderResult>(`/v2/checkout/orders/${orderId}/capture`, { body: {}, requestId: `cap-${orderId}` });
