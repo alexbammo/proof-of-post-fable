@@ -16,7 +16,7 @@ export default function PricingPage() {
       <div className="max-w-2xl">
         <h1 className="text-3xl font-semibold tracking-tight">Pricing</h1>
         <p className="mt-3 text-muted">
-          The brand pays. <strong className="text-foreground">Creators pay nothing and keep 100%.</strong> You only pay when the post is proven. Half the cost of a manager, and no 10–15% taken from both sides.
+          The brand pays. <strong className="text-foreground">Creators pay nothing and keep 100%.</strong> You only pay when the post is proven. About half a manager&apos;s cut, and nothing taken from the creator.
         </p>
       </div>
       <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">

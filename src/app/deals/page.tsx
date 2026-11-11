@@ -4,7 +4,7 @@ import { listDeals } from "@/lib/deals";
 import { ensureDemoParties } from "@/lib/parties";
 import { StatusChip } from "@/components/StatusChip";
 import { usd } from "@/lib/money";
-import { shortTitle } from "@/lib/text";
+import { shortTitle, platformName } from "@/lib/text";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Deals" };
@@ -33,7 +33,7 @@ export default async function DealsPage() {
                 <div className="flex-1 min-w-[12rem]">
                   <div className="font-medium">{shortTitle(d.title, 72)}</div>
                   <div className="text-xs text-muted">
-                    {d.terms.platform} · @{d.terms.creatorAccount || "—"} · {new Date(d.createdAt).toLocaleDateString("en-GB")}
+                    {platformName(d.terms.platform)} · @{d.terms.creatorAccount || "—"} · {new Date(d.createdAt).toLocaleDateString("en-GB")}
                   </div>
                 </div>
                 <StatusChip status={d.status} />

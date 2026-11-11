@@ -30,7 +30,7 @@ export function TermsCard({ deal }: { deal: Deal }) {
       <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
         {rows.map(([k, v]) => (
           <div key={k} className="contents">
-            <dt className="text-muted">{k}</dt>
+            <dt className="text-muted whitespace-nowrap">{k}</dt>
             <dd className="text-right break-words">{v}</dd>
           </div>
         ))}

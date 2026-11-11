@@ -4,7 +4,9 @@
 
 ## Inspiration / the problem
 
-Brands pay creators and sometimes the post never appears, goes up without the #ad label, or is deleted after a day. Creators deliver and then chase payment for weeks. Today a person checks everything by hand with screenshots, or a marketplace takes 10–15% from each side. The average creator deal is about $250, and 80% are under $300, so nobody can afford a human in the loop.
+Brands pay creators and sometimes the post never appears, goes up without the #ad label, or is deleted after a day. Creators deliver and then chase payment for weeks. Brands and agencies typically pay 60 to 90 days after delivery. Today a person checks everything by hand with screenshots, a marketplace takes a cut and still needs someone to approve the release, or a manager takes 15 to 20%. The average paid deal is about $255 on video and under $200 on photo platforms, and 80% are under $300 (Collabstr 2026 report, 21,000 collaborations), so nobody can afford a human in the loop.
+
+Others have automated the check, but they pay in crypto tokens. The mainstream marketplaces pay real money but release it on a person's say-so or a timer. We wanted the automated check in front of real money.
 
 ## What it does
 
@@ -23,11 +25,15 @@ Next.js 16 + TypeScript, Postgres (Render) via Drizzle, PayPal sandbox (Orders v
 
 ## Challenges
 
-- *To be filled from LOG.md.*
+- **PayPal multiparty rules are learned by hitting them.** A Merchant-type app gets 401s on the platform endpoints; a seller who has not been through onboarding gives 403 PAYEE_NOT_CONSENTED at capture; a partial release of a held capture is refused (422 AMOUNT_CHECK_FAILED), which is why payouts are single-stage; a refund that names the platform fee is refused (422 PLATFORM_FEE_NOT_ENABLED), and it turned out not to be needed because the held gross already contains the fee.
+- **A bug the hosted run found.** A creator linked by email only could be paid but not refunded (403), because the refund is a seller-scoped call and needs the seller's merchant id. The id is on the capture, not on the order. Fixed and verified on the live site the same evening.
+- **Refunds must never claw back from a paid creator.** A review caught that a deal paid at go-live and later failing would have refunded against money already disbursed. Those deals now go to a person instead.
+- **Making the checker hard to talk round.** Caption text is treated as untrusted data; a caption that addresses the checker is flagged and cannot produce a pass.
+- **Keeping re-checks cheap.** Daily re-checks compare a snapshot in plain code and only call a model when the post changed.
 
 ## What's next
 
-Instagram and TikTok adapters (their app reviews take weeks), enterprise #ad compliance reports, mass payouts.
+Instagram and TikTok adapters (their app reviews take weeks), staged payouts for longer campaigns (needs a second PayPal capture per stage), enterprise #ad compliance reports, mass payouts.
 
 ## Built with
 

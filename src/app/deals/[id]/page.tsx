@@ -9,7 +9,7 @@ import { DealChat } from "@/components/DealChat";
 import { DealActions } from "@/components/DealActions";
 import { VerdictCard } from "@/components/VerdictCard";
 import { usd } from "@/lib/money";
-import { shortTitle } from "@/lib/text";
+import { shortTitle, platformName, when } from "@/lib/text";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +66,7 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
                 {post.url}
               </a>
               <p className="text-xs text-muted mt-1">
-                {post.platform} · submitted {new Date(post.submittedAt).toLocaleString("en-GB")} {post.trust === "manual" ? "· lower trust: manual" : ""}
+                {platformName(post.platform)} · submitted {when(post.submittedAt)} {post.trust === "manual" ? "· lower trust: manual" : ""}
               </p>
             </section>
           ) : null}
@@ -85,7 +85,7 @@ export default async function DealPage({ params, searchParams }: PageProps<"/dea
             <ol className="mt-3 space-y-1.5 text-xs">
               {events.map((e) => (
                 <li key={e.id} className="grid grid-cols-[9.5rem_1fr] gap-3">
-                  <span className="text-muted tabular-nums">{new Date(e.createdAt).toLocaleString("en-GB", { dateStyle: "short", timeStyle: "medium" })}</span>
+                  <span className="text-muted tabular-nums">{when(e.createdAt, true)}</span>
                   <span>
                     <span className="font-mono">{e.action}</span> <span className="text-muted">by {e.actor}</span>
                     {e.detail ? <span className="text-muted"> · {summarise(e.detail)}</span> : null}

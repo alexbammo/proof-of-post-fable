@@ -6,7 +6,7 @@ import { listDeals } from "@/lib/deals";
 import { StatusChip } from "@/components/StatusChip";
 import { aiConfigured } from "@/lib/ai/client";
 import { paypalConfigured } from "@/lib/paypal/client";
-import { shortTitle } from "@/lib/text";
+import { shortTitle, when } from "@/lib/text";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Admin" };
@@ -57,7 +57,7 @@ export default async function AdminPage() {
           <tbody className="divide-y divide-border">
             {events.map((e) => (
               <tr key={e.id} className="align-top">
-                <td className="py-1.5 pr-3 tabular-nums text-muted whitespace-nowrap">{new Date(e.createdAt).toLocaleString("en-GB", { dateStyle: "short", timeStyle: "medium" })}</td>
+                <td className="py-1.5 pr-3 tabular-nums text-muted whitespace-nowrap">{when(e.createdAt, true)}</td>
                 <td className="py-1.5 pr-3 font-mono">{e.dealId ? <Link href={`/deals/${e.dealId}`} className="hover:underline">{e.dealId.slice(0, 12)}</Link> : "—"}</td>
                 <td className="py-1.5 pr-3">{e.actor}</td>
                 <td className="py-1.5 pr-3 font-mono">{e.action}</td>

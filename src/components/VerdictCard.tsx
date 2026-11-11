@@ -39,7 +39,7 @@ export function VerdictCard({ check, compact = false }: { check: Check; compact?
                       <span className="font-medium capitalize">{c.term}</span>
                     </div>
                     <p className="text-foreground/80">{c.note}</p>
-                    {c.evidence ? <p className="mt-1 text-xs text-muted font-mono break-words">“{c.evidence}”</p> : null}
+                    {c.evidence ? <p className="mt-1 text-xs text-muted font-mono break-words">{c.evidence}</p> : null}
                   </div>
                 </li>
               ))}
