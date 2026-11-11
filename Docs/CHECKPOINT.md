@@ -9,10 +9,10 @@ Each item: **done / partly / not done**, with proof. Everything marked done was 
 | 2 | Fail path ending in a refund | **done** |
 | 3 | AI verdicts correct with evidence on 5+ posts incl. missing #ad and trick caption | **done** |
 | 4 | Adapters: YouTube, Twitch, Bluesky, manual | **done** (manual: code only) |
-| 5 | Deployed on Render, opens from a clean browser | **done** (not yet opened by a person on a clean browser) |
+| 5 | Deployed on Render, opens from a clean browser | **done** (owner used it in their own browser, 11 Nov) |
 | 6 | README setup works from scratch | **partly** |
 | 7 | Design quality | **partly** |
-| 8 | AG Grid dashboard | **partly** |
+| 8 | AG Grid dashboard | **done** |
 | 9 | Code quality, no secrets in git | **done** |
 | 10 | Honest LOG.md | **done** |
 
@@ -75,9 +75,9 @@ README rewritten 9 Nov with step-by-step local run, env names, PayPal sandbox se
 
 Deal page (chat, terms card, money card, checks, audit log), Pay button and the PayPal return were clicked through by the owner in a browser on 8 Nov. Home, deals list, creator, brand, pricing and admin pages render (HTTP 200) but have not had a design pass. Status chips, verdict chips and the AG Grid theme share one palette.
 
-## 8. AG Grid dashboard — partly
+## 8. AG Grid dashboard — done
 
-`src/components/CampaignGrid.tsx` (AG Grid Community 36): one row per deal with status, verdict, held/released/refunded money, next check, "only flagged" filter. Renders at `/brand` and shows the two sandbox deals; column sorting/filtering not yet clicked in a browser.
+`src/components/CampaignGrid.tsx` (AG Grid Community 36): one row per deal with status, verdict, held/released/refunded money, next check, "only flagged" filter. Renders at `/brand` and shows the two sandbox deals; the owner clicked column sorting and the status filter on the hosted site on 11 Nov and both work.
 
 ## 9. Code quality, no secrets — done
 
