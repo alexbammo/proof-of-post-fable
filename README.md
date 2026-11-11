@@ -4,7 +4,7 @@ Brand deals that pay the creator automatically once AI has verified the post. Th
 
 Built for the PayPal AI Hackathon (Nov 2026). This is the **build-fable** entry: Claude Fable 5.1 as the builder, Claude Opus 5.5 and Haiku 5.5 inside the app.
 
-> Hosted demo: *not yet deployed* (Render deploy is the next step; see `Docs/HANDOVER.md`).
+> Hosted demo: https://proof-of-post-fable.onrender.com (Render free tier: the first load after a quiet spell takes up to a minute while it wakes up).
 > What is verified and what is not: `Docs/LOG.md` (running log) and `Docs/CHECKPOINT.md` (scorecard with proof).
 
 ## What it does

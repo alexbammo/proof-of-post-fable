@@ -9,7 +9,7 @@ Each item: **done / partly / not done**, with proof. Everything marked done was 
 | 2 | Fail path ending in a refund | **done** |
 | 3 | AI verdicts correct with evidence on 5+ posts incl. missing #ad and trick caption | **done** |
 | 4 | Adapters: YouTube, Twitch, Bluesky, manual | **done** (manual: code only) |
-| 5 | Deployed on Render, opens from a clean browser | **not done** |
+| 5 | Deployed on Render, opens from a clean browser | **done** (not yet opened by a person on a clean browser) |
 | 6 | README setup works from scratch | **partly** |
 | 7 | Design quality | **partly** |
 | 8 | AG Grid dashboard | **partly** |
@@ -63,9 +63,9 @@ Plus the two real route-level verdicts above (pass 0.93; fail 0.95 on missing #a
 - **Twitch**: Helix app token; VOD or channel link; `is_branded_content` from `/channels` feeds the disclosure check; expired VOD → not live. Verified on a live channel.
 - **Manual** (screenshot + pasted text): code and UI path exist; marked lower trust in the verdict. Not exercised end to end.
 
-## 5. Render deploy — not done
+## 5. Render deploy: done 11 Nov
 
-Needs the GitHub repo (owner runs `gh repo create alexbammo/proof-of-post-fable --private --source=. --remote=origin --push`) and the owner's Render account. Plan in `Docs/HANDOVER.md` §7: web service (`pnpm build` / `pnpm start`), Postgres add-on → `DATABASE_URL`, cron job hitting `/api/cron/recheck` with the admin token, then the PayPal webhook id.
+https://proof-of-post-fable.onrender.com deployed from `render.yaml` (Blueprint: web service, free Postgres, daily cron) by the owner. Checked with curl from outside: `/`, `/pricing`, `/deals`, `/brand`, `/creator`, `/admin` all 200; `/admin` shows PayPal sandbox configured, Claude API configured, database Postgres. Smoke deal `deal_wr82c3cjg8` on the hosted site: Claude deal builder filled the terms from one message, both sides accepted, `POST /pay` returned sandbox order 4VP97712HE733291X with an approval link. Not yet done on the hosted site: buyer approval, capture, check, release. The hosted creator is linked by sandbox email (quick link), not by the full partner referral. Free tier sleeps: first request took 53 s.
 
 ## 6. README from scratch — partly
 

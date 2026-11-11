@@ -2,7 +2,9 @@
 
 Every deploy gets a number. Newest first.
 
-## Not yet released (will become 0.1 with the first Render deploy)
+## 0.1, 11 Nov 2026: first Render deploy
+
+https://proof-of-post-fable.onrender.com from commit `87269e6` via the `render.yaml` Blueprint (web service, free Postgres, daily cron). Contents:
 
 - Next.js 16 skeleton, Drizzle schema (brands, creators, deals, payments, posts, checks, audit events, disputes, chat), PGlite/Postgres driver switch.
 - Platform adapters behind one interface: Bluesky, YouTube, Twitch (all verified against live content), manual fallback.

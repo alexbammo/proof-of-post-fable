@@ -43,7 +43,8 @@ Brand-deal escrow. A brand and a creator agree terms through a chat that an AI t
 | UI: deals list/detail, chat, creator, brand AG Grid dashboard, pricing, admin | committed; deal page, Pay button and PayPal return verified in a browser by the owner; AG Grid interaction still unclicked |
 | YouTube adapter, Twitch adapter | **verified** against live content (`scripts/spike-adapters.ts`) |
 | Fail path → refund | **verified** in sandbox 9 Nov: post without #ad → Claude fail 0.95 → 48h fix window → clock +3 days → fix re-check fail → refund COMPLETED → deal `refunded` |
-| Render deploy, webhook id, Devpost, video | **not started** |
+| Render deploy | **done 11 Nov**: https://proof-of-post-fable.onrender.com (pages, Postgres, Claude builder and PayPal order creation checked; full pay-to-release run on the hosted site not yet done) |
+| Webhook id, Devpost, video | **not started** |
 
 `npx tsc --noEmit` passes on the whole tree including the uncommitted files (checked 17:38).
 
