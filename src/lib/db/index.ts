@@ -29,6 +29,9 @@ async function create(): Promise<Db> {
   const { drizzle } = await import("drizzle-orm/pglite");
   const { migrate } = await import("drizzle-orm/pglite/migrator");
   const { PGlite } = await import("@electric-sql/pglite");
+  // A fresh clone has no ./data folder (it is git-ignored) and PGlite does not create parent folders.
+  const { mkdirSync } = await import("node:fs");
+  mkdirSync("./data", { recursive: true });
   const client = new PGlite("./data/pglite");
   const db = drizzle(client, { schema });
   await migrate(db, { migrationsFolder: folder });
