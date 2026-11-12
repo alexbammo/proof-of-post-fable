@@ -76,7 +76,10 @@ All on the hosted site, in the PayPal sandbox, on 11 and 12 Nov 2026, with real 
 
 ## What's next
 
-Instagram and TikTok adapters (their app reviews take weeks), staged payouts for longer campaigns, disclosure compliance reports for larger brands, and payouts in the creator's own currency.
+- **Performance bonuses.** Pay more when a post takes off. The checker already reads live view counts, so a deal could say "$250 now, plus $100 at 50,000 views", with the bonus held by PayPal and released when the number is reached. Brands pay for results they can see, and creators share in the upside.
+- **More platforms.** Instagram and TikTok adapters (their app reviews take weeks).
+- **Staged payouts** for longer campaigns.
+- **Disclosure compliance reports** for larger brands, and payouts in the creator's own currency.
 
 ---
 
