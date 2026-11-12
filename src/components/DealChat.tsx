@@ -41,7 +41,7 @@ export function DealChat({ dealId, initial, locked, brandName, creatorName }: { 
       <div className="flex-1 overflow-y-auto p-5 space-y-3">
         {messages.length === 0 ? (
           <p className="text-sm text-muted">
-            Start by describing the deal in plain English, e.g. “One Bluesky post from @maya.films about our new oat-milk chai, must include #ad and #NimbusTea, up by Friday, stays up 7 days, $250.”
+            Start by describing the deal in plain English, e.g. “One YouTube video from @alex-v7l8b about our new oat-milk chai, must include #ad and #NimbusTea, up by Friday, stays up 7 days, $250.”
           </p>
         ) : null}
         {messages.map((m) => (

@@ -7,6 +7,8 @@ import { newId } from "@/lib/ids";
 
 export const DEMO_BRAND_ID = "brand_demo";
 export const DEMO_CREATOR_ID = "creator_demo";
+// The demo creator is the channel the demo videos are posted on.
+const DEMO_CREATOR = { name: "Alex", handle: "alex-v7l8b" };
 
 export async function ensureDemoParties() {
   const db = await getDb();
@@ -16,11 +18,13 @@ export async function ensureDemoParties() {
   if (!c)
     await db.insert(schema.creators).values({
       id: DEMO_CREATOR_ID,
-      name: "Maya Films",
-      handle: "maya.films",
-      email: "maya@creator.example",
+      ...DEMO_CREATOR,
+      email: "alex@creator.example",
       onboardingStatus: "not_started",
     });
+  // Display fields only: keep an already-seeded row in step with the demo channel. PayPal fields are untouched.
+  else if (c.name !== DEMO_CREATOR.name || c.handle !== DEMO_CREATOR.handle)
+    await db.update(schema.creators).set(DEMO_CREATOR).where(eq(schema.creators.id, DEMO_CREATOR_ID));
 }
 
 export async function getBrand(id: string) {
