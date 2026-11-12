@@ -103,7 +103,7 @@ export function DealActions({ deal, creator, canTimeWarp }: { deal: Deal; creato
           }}
         >
           <p className="text-sm text-muted">{deal.status === "fix_window" ? "Fix the post, then resubmit the link." : "Creator: paste the link to the live post."}</p>
-          <input value={postUrl} onChange={(e) => setPostUrl(e.target.value)} placeholder="https://bsky.app/profile/…/post/…" className="input" required />
+          <input value={postUrl} onChange={(e) => setPostUrl(e.target.value)} placeholder="Link to the live post, https://…" className="input" required />
           <label className="flex items-center gap-2 text-xs text-muted">
             <input type="checkbox" checked={manual} onChange={(e) => setManual(e.target.checked)} /> Platform not supported: submit a screenshot instead (lower trust)
           </label>
