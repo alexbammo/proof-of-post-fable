@@ -17,13 +17,15 @@ Draft, 11 Nov 2026. Follows the plan in BUILD.md section 12. Target length 2:50,
 4. The admin token pasted into the Demo clock box once, so the browser remembers it.
 5. Sandbox buyer logged in at PayPal so checkout is two clicks.
 
-Deals B and C are not yet set up on the hosted site.
+Set up on the hosted site on 12 Nov, both agreed and waiting for payment: Deal B `deal_tuxntgwrqu` (asks for #MawbornPets and a link the video does not have), Deal C `deal_fqj39bcjcm` (same terms as the passing deal; needs a trick line added to the video description before the link is submitted, then removed).
+
+Voice: generated with ElevenLabs from the ten parts below (owner's choice, 12 Nov).
 
 ## Script
 
 | Time | On screen | Voice |
 |---|---|---|
-| 0:00 to 0:20 | Home page, slow scroll to the three trust cards. | "A small tea brand agrees to pay a creator fifty dollars for a video. Pay first, and the post might never appear. Pay after, and the creator might never get paid. A manager fixes this by taking fifteen to twenty percent. Proof of Post fixes it with PayPal and an AI checker." |
+| 0:00 to 0:20 | Home page, slow scroll to the three trust cards. | "A small game studio agrees to pay a creator fifty dollars for a video. Pay first, and the post might never appear. Pay after, and the creator might never get paid. A manager fixes this by taking fifteen to twenty percent. Proof of Post fixes it with PayPal and an AI checker." |
 | 0:20 to 0:40 | New deal. Type one message in the chat; terms card fills in. Both sides accept. | "The brand describes the deal in plain words. Claude turns the chat into fixed terms: the account, the deadline, the link, the hashtag, the disclosure. Both sides accept and the terms lock." |
 | 0:40 to 1:00 | Pay button, PayPal sandbox checkout, back to the deal: "PayPal is holding $57.50". | "The brand pays through PayPal. This is a multiparty order with the creator as the seller and delayed disbursement, so PayPal holds the money. We never touch it. We can only release it or refund it." |
 | 1:00 to 1:25 | Creator pastes the link. Verdict card: pass, each term with its evidence. Money card: $50 released. | "The creator posts and pastes the link. Claude reads the live post and checks every term, quoting the evidence it used. It passes, and PayPal releases the creator's fifty dollars. The creator keeps all of it; the brand paid the fee on top." |
