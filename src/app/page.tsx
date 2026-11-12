@@ -21,7 +21,8 @@ export default function Home() {
             Half the cost of a manager. You only pay when the post is proven.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/deals/new" className="rounded-lg bg-accent text-accent-ink px-5 py-2.5 text-sm font-medium hover:opacity-90">
+            {/* No prefetch: this route creates a draft deal, so it must only run on a real click. */}
+            <Link href="/deals/new" prefetch={false} className="rounded-lg bg-accent text-accent-ink px-5 py-2.5 text-sm font-medium hover:opacity-90">
               Start a deal
             </Link>
             <Link href="/brand" className="rounded-lg border border-border bg-card px-5 py-2.5 text-sm font-medium hover:bg-background">

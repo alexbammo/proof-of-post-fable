@@ -19,7 +19,8 @@ export default async function DealsPage() {
           <h1 className="text-2xl font-semibold tracking-tight">Deals</h1>
           <p className="text-sm text-muted mt-1">Every deal, from first chat to payout.</p>
         </div>
-        <Link href="/deals/new" className="btn-primary">
+        {/* No prefetch: this route creates a draft deal, so it must only run on a real click. */}
+        <Link href="/deals/new" prefetch={false} className="btn-primary">
           New deal
         </Link>
       </div>
