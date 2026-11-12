@@ -15,3 +15,17 @@ https://proof-of-post-fable.onrender.com from commit `87269e6` via the `render.y
 - UI: home, deals, deal page (chat, terms, money, checks, audit), creator, brand AG Grid dashboard, pricing, admin.
 - Single-stage payouts only (owner decision 8 Nov); a failed deal whose creator was already paid goes to *Under review*, never a clawback.
 - Docs: LOG, RELEASES, HANDOVER, CHECKPOINT, DEVPOST, README. AGPL-3.0 licence.
+
+## 0.2, 12 Nov 2026 (submission build)
+
+Hosted at https://proof-of-post-fable.onrender.com from `main`.
+
+- Refund works for a creator linked by email (seller id read from the capture), with a stable refund key and resumable completion.
+- Fresh clone runs: `./data` is created before the embedded database opens.
+- UI polish: one date format, platform names, evidence quoting, neutral post-link placeholder.
+- Demo creator follows the demo channel; pretend brand and three public test videos for pass, fail and trick caption.
+- Admin-only cleanup of never-paid deals; link prefetch no longer creates draft deals.
+- `scripts/check-url.ts`: dry-run the checker on one URL.
+- README: judge section with a sandbox buyer login and a three-minute walkthrough. Devpost text final. Pitch notes and video script.
+- Verified on the hosted site: pass to release and fail to refund at $250, trick caption flagged, daily cron re-check ran.
+

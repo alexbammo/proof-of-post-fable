@@ -10,7 +10,7 @@ Each item: **done / partly / not done**, with proof. Everything marked done was 
 | 3 | AI verdicts correct with evidence on 5+ posts incl. missing #ad and trick caption | **done** |
 | 4 | Adapters: YouTube, Twitch, Bluesky, manual | **done** (manual: code only) |
 | 5 | Deployed on Render, opens from a clean browser | **done** (owner used it in their own browser, 11 Nov) |
-| 6 | README setup works from scratch | **partly** |
+| 6 | README setup works from scratch | **done on this machine** (clean clone runs after `ceaf918`; not tried with real keys on a second machine) |
 | 7 | Design quality | **partly** |
 | 8 | AG Grid dashboard | **done** |
 | 9 | Code quality, no secrets in git | **done** |

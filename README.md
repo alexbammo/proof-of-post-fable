@@ -2,9 +2,10 @@
 
 Brand deals that pay the creator automatically once AI has verified the post. The money is held by PayPal until then.
 
-Built for the PayPal AI Hackathon (Nov 2026). This is the **build-fable** entry: Claude Fable 5.1 as the builder, Claude Opus 5.5 and Haiku 5.5 inside the app.
+Built for the PayPal AI Hackathon (Nov 2026). Built with Claude Fable 5.2 as the coding agent; Claude Opus 5.5 and Haiku 5.5 run inside the app.
 
 > Hosted demo: https://proof-of-post-fable.onrender.com (Render free tier: the first load after a quiet spell takes up to a minute while it wakes up).
+> Judges: to try a payment on the hosted demo, use the sandbox buyer login under [Try it as a judge](#try-it-as-a-judge).
 > What is verified and what is not: `Docs/LOG.md` (running log) and `Docs/CHECKPOINT.md` (scorecard with proof).
 
 ## What it does
@@ -61,20 +62,36 @@ What is in use: **PayPal multiparty (Commerce Platform) with delayed disbursemen
 4. The creator must complete **partner-referral onboarding** once (Creator page → *Connect PayPal*; log in as the seller). Linking by email is not enough: capture returns `PAYEE_NOT_CONSENTED` until the seller has consented to the platform. The app verifies onboarding with PayPal by tracking id rather than trusting the redirect.
 5. When paying, the browser must be logged in as the **buyer**, not the seller (PayPal refuses to let a seller pay their own order).
 
-Facts verified in the sandbox, 8–9 Nov 2026: order creation with `payee`, `platform_fees` and `disbursement_mode: DELAYED`; capture (COMPLETED, DELAYED, fee breakdown exact); full release via `POST /v1/payments/referenced-payouts-items` (SUCCESS, synchronous); refund of the undisbursed capture (COMPLETED, platform fee returned with it). Partial release with `payout_amount` is rejected (`AMOUNT_CHECK_FAILED`), which is why payouts are single-stage. Sending `payment_instruction.platform_fees` on the refund is rejected (`PLATFORM_FEE_NOT_ENABLED`) and is not needed.
+Facts verified in the sandbox, 8–12 Nov 2026: order creation with `payee`, `platform_fees` and `disbursement_mode: DELAYED`; capture (COMPLETED, DELAYED, fee breakdown exact); full release via `POST /v1/payments/referenced-payouts-items` (SUCCESS, synchronous); refund of the undisbursed capture (COMPLETED, platform fee returned with it). Partial release with `payout_amount` is rejected (`AMOUNT_CHECK_FAILED`), which is why payouts are single-stage. Sending `payment_instruction.platform_fees` on the refund is rejected (`PLATFORM_FEE_NOT_ENABLED`) and is not needed.
 
-## Sandbox logins for judges
+## Try it as a judge
 
-Sandbox only. These are PayPal test accounts; they move no real money.
+The hosted demo needs no keys and no setup: https://proof-of-post-fable.onrender.com
 
-| Role | Sandbox account |
+**Without logging in to anything** you can start a deal in the chat and watch Claude build the terms, open the brand dashboard, and open any finished deal to see its PayPal order and capture ids, the AI verdict with its evidence, and the audit log.
+
+**To pay for a deal**, use this PayPal sandbox buyer at the PayPal checkout. It is a test account made for judges and holds test money only.
+
+| | |
 |---|---|
-| Brand (buyer) | `sb-erjts53771318@personal.example.com` |
-| Creator (seller, already onboarded to the platform) | `sb-ihmpl53787724@business.example.com` |
+| Email | `sb-ooh47x53883773@personal.example.com` |
+| Password | `qNLK+4HV` |
 
-Passwords will be added here before the repository goes public (they live in the PayPal developer dashboard under Testing Tools → Sandbox Accounts).
+A full run, about three minutes:
 
-The app itself has no login: pick a side on the home page. The admin page is read-only; its demo clock needs `ADMIN_TOKEN`.
+1. Home page → **Start a deal**. In the chat, type a deal, for example: *One YouTube video from @alex-v7l8b about our new oat-milk chai. Must include #ad and #NimbusTea in the description. Up by 20 Nov 2026, stays up 7 days, $250, paid in full when the post is verified.*
+2. Click **Accept as brand**, then **Accept as creator**.
+3. Click **Pay with PayPal (sandbox)** and log in with the buyer above. PayPal now holds the money.
+4. Paste one of these public test videos as the post link and submit:
+   - `https://youtu.be/xVjRmNjas7U` meets the terms: pass, and PayPal releases the creator's money.
+   - `https://youtu.be/LNKXA1Au5h8` has no paid-promotion label: fail, 48-hour fix window, then a full refund.
+   - `https://youtu.be/iWTZzlIeJ3g` has a description that tells the checker to approve it: flagged and failed.
+
+The demo creator is already linked to an onboarded sandbox seller (`sb-ihmpl53787724@business.example.com`), so no seller login is needed. The demo clock that fast-forwards a deal needs the admin token and is shown in the demo video instead.
+
+If the buyer login does not work, contact us through Devpost and we will send a fresh one. The demo video shows a full payment, release and refund.
+
+The app itself has no login: pick a side on the home page. The admin page is read-only.
 
 ## Architecture
 
@@ -112,7 +129,7 @@ Deal builder (Claude) → terms JSON, both accept → PayPal multiparty order (c
 - **Demo clock.** Deals have a per-deal day offset so a 7-day stay-up period can be shown in a minute. Real time is used unless an admin jumps the clock.
 - **No accounts.** One demo brand and one demo creator; you pick a side. Real onboarding, auth and KYC are out of scope.
 - **Manual adapter** (screenshot + pasted text) is a lower-trust fallback for platforms we do not fetch; the verdict says so.
-- **PayPal webhook** route exists but is unverified (needs a public URL). The app does not depend on it: capture, release and refund are confirmed from the API responses, and a PENDING capture is re-polled by the re-check job.
+- **PayPal webhook** route exists but is unverified. The app does not depend on it: capture, release and refund are confirmed from the API responses, and a PENDING capture is re-polled by the re-check job.
 - **Partially released** deals cannot occur: PayPal rejects partial referenced payouts, so payouts are single-stage (100% when verified or 100% after stay-up).
 - If a creator has already been paid and the post later disappears, nothing is clawed back automatically; the deal is marked *Under review* for a human.
 
